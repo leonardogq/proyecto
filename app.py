@@ -1,12 +1,11 @@
-# app.py
 import streamlit as st
 from planificador import PlanificadorEventos
 import json
 from datetime import datetime
 
-# ======================================================
+
 # Función para cargar los eventos desde JSON
-# ======================================================
+
 def cargar_eventos():
     try:
         with open("data/eventos.json", "r", encoding="utf-8") as f:
@@ -18,16 +17,16 @@ def cargar_eventos():
     except FileNotFoundError:
         return []
 
-# ======================================================
+
 # Inicializar planificador y cargar eventos
-# ======================================================
+
 planificador = PlanificadorEventos()
 planificador.eventos = cargar_eventos()
 
-# ======================================================
+
 # Página principal
-# ======================================================
-st.title("📅 Planificador de Eventos Musicales")
+
+st.title(" Planificador de Eventos Musicales")
 
 # Mostrar recursos y restricciones (desplegables)
 with st.expander("Recursos disponibles", expanded=False):
@@ -40,19 +39,19 @@ with st.expander("Restricciones por sala, evento y categoría", expanded=False):
         restricciones_mostrables = json.load(f)
     st.json(restricciones_mostrables)
 
-# ======================================================
+
 # Opciones principales
-# ======================================================
+
 opcion = st.radio(
     "Seleccione una opción",
     ["Agregar evento", "Eliminar evento", "Ver agenda"]
 )
 
-# ======================================================
+
 # Opción: Ver Agenda
-# ======================================================
+
 if opcion == "Ver agenda":
-    st.header("📋 Agenda de Eventos")
+    st.header(" Agenda de Eventos")
     if not planificador.eventos:
         st.info("No hay eventos registrados.")
     else:
@@ -65,11 +64,11 @@ if opcion == "Ver agenda":
                 st.markdown(f"- {rec}: {cant}")
             st.markdown("---")
 
-# ======================================================
+
 # Opción: Eliminar Evento
-# ======================================================
+
 elif opcion == "Eliminar evento":
-    st.header("❌ Eliminar Evento")
+    st.header(" Eliminar Evento")
 
     if not planificador.eventos:
         st.info("No hay eventos para eliminar.")
@@ -111,11 +110,11 @@ elif opcion == "Eliminar evento":
                 st.error(mensaje)
 
 
-# ======================================================
+
 # Opción: Agregar Evento
-# ======================================================
+
 elif opcion == "Agregar evento":
-    st.header("➕ Agregar Evento")
+    st.header(" Agregar Evento")
 
     # Cargar recursos y restricciones si no se cargaron
     if planificador.recursos is None:
