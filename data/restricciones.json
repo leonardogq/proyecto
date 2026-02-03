@@ -1,0 +1,72 @@
+{
+  "corequisitos": {
+    "recursos": {
+      "Micrófonos": ["Soportes de micrófono", "Audífonos"],
+      "Soportes de micrófono": ["Micrófonos"],
+      "Audífonos": ["Micrófonos"]
+    },
+
+    "categorias": {
+      "equipos": {
+        "requiere": ["Cables"],
+        "excepto": ["Computadora", "Cables", "Soportes de micrófono"]
+      },
+      "instrumentos": {
+        "requiere": ["Cables"],
+        "excepto": ["Batería"]
+      }
+    }
+  },
+
+  "exclusiones": {
+  "por_sala": {
+    "Pequeña": {
+      "instrumentos": true,
+      "personal": ["Productor musical"]
+    },
+    "Grande": {
+      "equipos": ["Teleprompter"]
+    }
+  },
+
+  "eventos_prohibidos": {
+    "Pequeña": ["Grabación de instrumental","Grabación de canción"],
+    "Grande": ["Grabación de doblaje", "Grabación de podcast"]
+  },
+
+  "por_evento": {
+    "Grabación de instrumental": {
+      "prohibido": ["Micrófonos"]
+    }
+  }
+},
+
+  "reglas_evento": {
+    "Grabación de podcast": {
+      "micrófonos": 2
+    },
+    "Grabación de doblaje": {
+      "micrófonos": 1
+    },
+    "Grabación de canción": {
+      "micrófonos": 1
+    },
+    "Grabación de instrumental": {
+      "micrófonos": 0
+    }
+  },
+
+  "personal_obligatorio": {
+    "Pequeña": {
+      "Técnicos de audio": 1
+    },
+    "Grande": {
+      "Técnicos de audio": 1,
+      "Productor musical": 1
+    }
+  },
+
+  "reglas_generales": {
+    "evento_debe_tener_recursos": true
+  }
+}

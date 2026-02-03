@@ -1,0 +1,38 @@
+{
+  "equipos": {
+    "Micrófonos": 8,
+    "Soportes de micrófono": 8,
+    "Audífonos": 10,
+    "Mezclador": 3,
+    "Computadora": 2,
+    "Ecualizador": 3,
+    "Teleprompter": 1,
+    "Cables": 25
+  },
+
+  "instrumentos": {
+    "Guitarra electroacústica": 2,
+    "Guitarra eléctrica": 1,
+    "Pianola": 2,
+    "Batería": 1,
+    "Bajo": 2
+  },
+
+  "salas": {
+    "Pequeña": 1,
+    "Grande": 1
+  },
+
+  "personal": {
+    "Técnicos de audio": 2,
+    "Productor musical": 1
+  },
+
+  "eventos": [
+    "Grabación de podcast",
+    "Grabación de doblaje",
+    "Grabación de canción",
+    "Grabación de instrumental"
+  ]
+}
+
