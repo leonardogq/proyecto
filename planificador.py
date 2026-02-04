@@ -503,3 +503,18 @@ class PlanificadorEventos:
                     e["inicio"] = datetime.fromisoformat(e["inicio"])
         except FileNotFoundError:
             self.eventos = []
+
+
+    def cargar_recursos_json(self, archivo="data/recursos.json"):
+        
+        # Carga los recursos disponibles desde un archivo JSON.
+        
+        with open("data/recursos.json", "r", encoding="utf-8") as f:
+            self.recursos = json.load(f)
+
+    def cargar_restricciones_json(self, archivo="data/restricciones.json"):
+        
+        # Carga las restricciones desde un archivo JSON.
+        
+        with open("data/restricciones.json", "r", encoding="utf-8") as f:
+            self.restricciones = json.load(f)

@@ -1,14 +1,27 @@
 [
   {
-    "tipo": "Grabación de podcast",
+    "tipo": "Grabación de doblaje",
     "sala": "Pequeña",
-    "inicio": "2026-02-02T00:00:00",
+    "inicio": "2026-02-04",
     "recursos": {
-      "Micrófonos": 3,
-      "Soportes de micrófono": 3,
-      "Audífonos": 3,
-      "Cables": 6,
+      "Micrófonos": 2,
+      "Soportes de micrófono": 2,
+      "Audífonos": 2,
+      "Cables": 4,
       "Técnicos de audio": 1
+    }
+  },
+  {
+    "tipo": "Grabación de canción",
+    "sala": "Grande",
+    "inicio": "2026-02-04",
+    "recursos": {
+      "Micrófonos": 2,
+      "Soportes de micrófono": 2,
+      "Audífonos": 2,
+      "Cables": 4,
+      "Técnicos de audio": 1,
+      "Productor musical": 1
     }
   }
 ]

@@ -9,6 +9,8 @@ from datetime import datetime
 
 planificador = PlanificadorEventos()
 planificador.cargar_eventos_json()
+planificador.cargar_recursos_json()
+planificador.cargar_restricciones_json()
 
 
 # Página principal
@@ -23,8 +25,8 @@ with st.expander("Recursos disponibles", expanded=False):
 
 with st.expander("Restricciones por sala, evento y categoría", expanded=False):
     with open("data/restricciones_usuario.json", "r", encoding="utf-8") as f:
-        restricciones_mostrables = json.load(f)
-    st.json(restricciones_mostrables)
+        restricciones_usuario = json.load(f)
+    st.json(restricciones_usuario)
 
 
 # Opciones principales
@@ -45,7 +47,7 @@ if opcion == "Ver agenda":
         for e in planificador.eventos:
             st.markdown(f"**Tipo:** {e.get('tipo', 'Desconocido')}")
             st.markdown(f"**Sala:** {e.get('sala', 'Desconocida')}")
-            st.markdown(f"**Fecha y hora:** {e.get('inicio').strftime('%Y-%m-%d %H:%M')}")
+            st.markdown(f"**Fecha:** {e.get('inicio').strftime('%Y-%m-%d')}")
             st.markdown("**Recursos asignados:**")
             for rec, cant in e.get("recursos", {}).items():
                 st.markdown(f"- {rec}: {cant}")
@@ -58,7 +60,7 @@ elif opcion == "Eliminar evento":
     st.header(" Eliminar Evento")
 
     if not planificador.eventos:
-        st.info("No hay eventos para eliminar.")
+        st.info("No hay eventos planificados.")
     else:
         # Crear lista de eventos legibles
         opciones = [
@@ -84,7 +86,7 @@ elif opcion == "Eliminar evento":
                 with open("data/eventos.json", "w", encoding="utf-8") as f:
                     json.dump(
                         [
-                            {**ev, "inicio": ev["inicio"].isoformat()}
+                            {**ev, "inicio": ev["inicio"].date().isoformat()}
                             for ev in planificador.eventos
                         ],
                         f,
@@ -103,14 +105,6 @@ elif opcion == "Eliminar evento":
 elif opcion == "Agregar evento":
     st.header(" Agregar Evento")
 
-    # Cargar recursos y restricciones si no se cargaron
-    if planificador.recursos is None:
-        with open("data/recursos.json", "r", encoding="utf-8") as f:
-            planificador.recursos = json.load(f)
-
-    if planificador.restricciones is None:
-        with open("data/restricciones.json", "r", encoding="utf-8") as f:
-            planificador.restricciones = json.load(f)
 
     # Inputs básicos
     tipo = st.selectbox("Tipo de evento", list(planificador.restricciones.get("reglas_evento", {}).keys()))
@@ -158,7 +152,7 @@ elif opcion == "Agregar evento":
                 with open("data/eventos.json", "w", encoding="utf-8") as f:
                     json.dump(
                         [
-                            {**ev, "inicio": ev["inicio"].isoformat()}
+                            {**ev, "inicio": ev["inicio"].date().isoformat()}
                             for ev in planificador.eventos
                         ],
                         f,
