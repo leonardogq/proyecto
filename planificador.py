@@ -1,5 +1,4 @@
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, date, timedelta
 import json
 
 class PlanificadorEventos:
@@ -96,11 +95,11 @@ class PlanificadorEventos:
 
     # fechas
     def _validar_fechas(self, evento):
-        """
-        Valida la fecha del evento bajo la regla:
-        - Solo puede haber un evento por sala por día.
-        - La hora no se considera para conflictos.
-        """
+        
+        # Valida la fecha del evento bajo la regla:
+        # - Solo puede haber un evento por sala por día.
+        
+        # garantiza que haya fecha y sala
         if "inicio" not in evento or "sala" not in evento:
             return False, "El evento debe tener fecha de inicio y sala"
 
@@ -111,6 +110,12 @@ class PlanificadorEventos:
             return False, "La fecha de inicio debe ser un objeto datetime"
 
         fecha_evento = inicio.date()
+        fecha_hoy = date.today()
+
+        # No permitir fechas pasadas
+        if fecha_evento < fecha_hoy:
+            return False, "No se pueden crear eventos en fechas anteriores a hoy"
+
 
         for e in self.eventos:
             if e["sala"] == sala and e["inicio"].date() == fecha_evento:
