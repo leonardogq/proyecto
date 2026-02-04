@@ -4,19 +4,6 @@ import json
 from datetime import datetime
 
 
-# Función para cargar los eventos desde JSON
-
-def cargar_eventos():
-    try:
-        with open("data/eventos.json", "r", encoding="utf-8") as f:
-            eventos = json.load(f)
-            # Convertir las fechas de string a datetime
-            for e in eventos:
-                e["inicio"] = datetime.fromisoformat(e["inicio"])
-            return eventos
-    except FileNotFoundError:
-        return []
-
 
 # Inicializar planificador y cargar eventos
 
