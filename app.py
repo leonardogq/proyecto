@@ -21,7 +21,7 @@ def cargar_eventos():
 # Inicializar planificador y cargar eventos
 
 planificador = PlanificadorEventos()
-planificador.eventos = cargar_eventos()
+planificador.cargar_eventos_json()
 
 
 # Página principal

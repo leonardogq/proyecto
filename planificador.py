@@ -15,62 +15,62 @@ class PlanificadorEventos:
     # Métodos principales para agregar y eliminar eventos
 
     def agregar_evento(self, evento):
-        """
-        Intenta agregar un evento al planificador.
-        Ejecuta todas las validaciones en orden.
-        Devuelve (True, "") si se agrega correctamente.
-        Devuelve (False, lista_de_errores) si falla alguna validación.
-        """
+        
+        # Intenta agregar un evento al planificador.
+        # Ejecuta todas las validaciones en orden.
+        # Devuelve (True, "") si se agrega correctamente.
+        # Devuelve (False, lista_de_errores) si falla alguna validación.
+        
         errores = []
 
-        # 1️⃣ Validar fecha
+        #  Validar fecha
         valido, mensaje = self._validar_fechas(evento)
         if not valido:
             errores.append(mensaje)
 
-        # 2️⃣ Validar reglas específicas del tipo de evento
+        #  Validar reglas específicas del tipo de evento
         valido, mensaje = self._validar_reglas_evento(evento)
         if not valido:
             errores.append(mensaje)
 
-        # 3️⃣ Validar corequisitos
+        #  Validar corequisitos
         errores += self.validar_corequisitos_por_recurso(evento)
         errores += self.validar_corequisitos_por_categoria(evento)
 
-        # 4️⃣ Validar exclusiones
+        #  Validar exclusiones
         errores += self.validar_exclusiones_por_sala(evento)
         errores += self.validar_exclusiones_por_evento(evento)
 
-        # 5️⃣ Validar personal obligatorio
+        #  Validar personal obligatorio
         valido, mensaje = self._validar_personal_obligatorio(evento)
         if not valido:
             errores.append(mensaje)
 
-        # 6️⃣ Validar disponibilidad de recursos
+        #  Validar disponibilidad de recursos
         errores += self._validar_disponibilidad_recursos(evento)
 
         # Validar eventos prohibidos por sala
         errores += self.validar_evento_por_sala(evento)
 
 
-        # 7️⃣ Resultado final
+        #  Resultado final
         if errores:
             return False, errores
 
-        # ✅ Todo correcto: agregamos el evento
+        # si todo ok, agregar evento
         self.eventos.append(evento)
-        self.guardar_eventos_json()  # <-- guardar cambios en JSON
+        self.guardar_eventos_json()  #  guardar cambios en JSON
     
 
         return True, "Evento agregado correctamente"
 
     def eliminar_evento(self, tipo, sala, fecha):
-        """
-        Elimina un evento del planificador buscando por:
-        - tipo de evento
-        - sala
-        - fecha (datetime.date o datetime)
-        """
+        
+        # Elimina un evento del planificador buscando por:
+        # - tipo de evento
+        # - sala
+        # - fecha (datetime.date o datetime)
+        
         if isinstance(fecha, datetime):
             fecha = fecha.date()
 
@@ -88,12 +88,12 @@ class PlanificadorEventos:
             return False, "Evento no encontrado"
 
         self.eventos.remove(evento_a_eliminar)
-        self.guardar_eventos_json()  # <-- actualizar JSON tras eliminar
+        self.guardar_eventos_json()  #  actualizar JSON tras eliminar
         return True, "Evento eliminado correctamente"
 
     # Validaciones internas
 
-    # fechas
+    # fechas listo
     def _validar_fechas(self, evento):
         
         # Valida la fecha del evento bajo la regla:
@@ -490,7 +490,7 @@ class PlanificadorEventos:
 
 
 
-    def cargar_eventos_json(self, archivo="eventos.json"):
+    def cargar_eventos_json(self, archivo="data/eventos.json"):
         
         # Carga eventos desde un archivo JSON.
         # Convierte las fechas de string ISO a datetime.
