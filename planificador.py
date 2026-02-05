@@ -79,7 +79,7 @@ class PlanificadorEventos:
             if (
                 e.get("tipo") == tipo and
                 e.get("sala") == sala and
-                e.get("inicio").date() == fecha
+                e.get("fecha").date() == fecha
             ):
                 evento_a_eliminar = e
                 break
@@ -100,16 +100,16 @@ class PlanificadorEventos:
         # - Solo puede haber un evento por sala por día.
         
         # garantiza que haya fecha y sala
-        if "inicio" not in evento or "sala" not in evento:
-            return False, "El evento debe tener fecha de inicio y sala"
+        if "fecha" not in evento or "sala" not in evento:
+            return False, "El evento debe tener fecha de fecha y sala"
 
-        inicio = evento["inicio"]
+        fecha = evento["fecha"]
         sala = evento["sala"]
 
-        if not isinstance(inicio, datetime):
-            return False, "La fecha de inicio debe ser un objeto datetime"
+        if not isinstance(fecha, datetime):
+            return False, "La fecha de fecha debe ser un objeto datetime"
 
-        fecha_evento = inicio.date()
+        fecha_evento = fecha.date()
         fecha_hoy = date.today()
 
         # No permitir fechas pasadas
@@ -118,7 +118,7 @@ class PlanificadorEventos:
 
 
         for e in self.eventos:
-            if e["sala"] == sala and e["inicio"].date() == fecha_evento:
+            if e["sala"] == sala and e["fecha"].date() == fecha_evento:
                 # Hay conflicto, llamamos al método que sugiere próxima fecha libre
                 sugerencia = self.sugerir_proxima_fecha_libre(sala, fecha_evento)
                 return False, (
@@ -348,10 +348,10 @@ class PlanificadorEventos:
         # Valida que el evento incluya el personal obligatorio según la sala en la que se realiza.
         
         # garantiza que haya sala y recursos
-        if "sala" not in evento:
+        if not evento.get("sala"):
             return False, "El evento debe especificar una sala"
 
-        if "recursos" not in evento:
+        if not evento.get("recursos"):
             return False, "El evento debe especificar recursos"
 
 
@@ -386,17 +386,17 @@ class PlanificadorEventos:
         errores = []
 
         # garantiza que haya fecha y recursos
-        if "inicio" not in evento or "recursos" not in evento:
-            return ["El evento debe tener fecha de inicio y recursos especificados"]
+        if "fecha" not in evento or "recursos" not in evento:
+            return ["El evento debe tener fecha de fecha y recursos especificados"]
 
-        fecha_evento = evento["inicio"].date()
+        fecha_evento = evento["fecha"].date()
         recursos_solicitados = evento["recursos"]
 
         # Contar recursos ocupados por otros eventos el mismo día
         recursos_ocupados = {}
 
         for e in self.eventos:
-            if e["inicio"].date() != fecha_evento:
+            if e["fecha"].date() != fecha_evento:
                 continue
 
             for recurso, cantidad in e["recursos"].items():
@@ -425,12 +425,12 @@ class PlanificadorEventos:
 
     # otros
 
-    def sugerir_proxima_fecha_libre(self, sala, fecha_inicio):
+    def sugerir_proxima_fecha_libre(self, sala, fecha_ev):
         
         # Devuelve la próxima fecha libre para la sala indicada, sin modificar la lista de eventos ni la lógica de _validar_fechas.
         
-        fecha = fecha_inicio
-        fechas_ocupadas = {e["inicio"].date() for e in self.eventos if e["sala"] == sala}
+        fecha = fecha_ev
+        fechas_ocupadas = {e["fecha"].date() for e in self.eventos if e["sala"] == sala}
 
         # Incrementamos día a día hasta encontrar uno libre
         while fecha in fechas_ocupadas:
@@ -443,24 +443,24 @@ class PlanificadorEventos:
     def mostrar_agenda(self):
         
         # Devuelve la lista completa de eventos registrados, con toda su información.
-        # Ordena por fecha de inicio para que se vea la agenda cronológicamente.
+        # Ordena por fecha de fecha para que se vea la agenda cronológicamente.
         
         if not self.eventos:
             return "No hay eventos programados."
 
-        # Ordenamos los eventos por fecha de inicio
-        eventos_ordenados = sorted(self.eventos, key=lambda e: e["inicio"])
+        # Ordenamos los eventos por fecha de fecha
+        eventos_ordenados = sorted(self.eventos, key=lambda e: e["fecha"])
 
         agenda = []
         for e in eventos_ordenados:
             tipo = e.get("tipo", "Desconocido")
             sala = e.get("sala", "No asignada")
-            inicio = e.get("inicio", "No asignada")
+            fecha = e.get("fecha", "No asignada")
             recursos = e.get("recursos", {})
             agenda.append(
                 f"Evento: {tipo}\n"
                 f"  Sala: {sala}\n"
-                f"  Fecha y hora: {inicio}\n"
+                f"  Fecha y hora: {fecha}\n"
                 f"  Recursos: {recursos}\n"
             )
 
@@ -476,8 +476,8 @@ class PlanificadorEventos:
         eventos_a_guardar = []
         for e in self.eventos:
             evento_copia = e.copy()
-            if isinstance(evento_copia.get("inicio"), datetime):
-                evento_copia["inicio"] = evento_copia["inicio"].isoformat()
+            if isinstance(evento_copia.get("fecha"), datetime):
+                evento_copia["fecha"] = evento_copia["fecha"].isoformat()
             eventos_a_guardar.append(evento_copia)
 
         with open(archivo, "w", encoding="utf-8") as f:
@@ -494,8 +494,8 @@ class PlanificadorEventos:
             with open(archivo, "r", encoding="utf-8") as f:
                 self.eventos = json.load(f)
             for e in self.eventos:
-                if isinstance(e.get("inicio"), str):
-                    e["inicio"] = datetime.fromisoformat(e["inicio"])
+                if isinstance(e.get("fecha"), str):
+                    e["fecha"] = datetime.fromisoformat(e["fecha"])
         except FileNotFoundError:
             self.eventos = []
 

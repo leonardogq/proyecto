@@ -47,7 +47,7 @@ if opcion == "Ver agenda":
         for e in planificador.eventos:
             st.markdown(f"**Tipo:** {e.get('tipo', 'Desconocido')}")
             st.markdown(f"**Sala:** {e.get('sala', 'Desconocida')}")
-            st.markdown(f"**Fecha:** {e.get('inicio').strftime('%Y-%m-%d')}")
+            st.markdown(f"**Fecha:** {e.get('fecha').strftime('%Y-%m-%d')}")
             st.markdown("**Recursos asignados:**")
             for rec, cant in e.get("recursos", {}).items():
                 st.markdown(f"- {rec}: {cant}")
@@ -64,7 +64,7 @@ elif opcion == "Eliminar evento":
     else:
         # Crear lista de eventos legibles
         opciones = [
-            f"{e['tipo']} | {e['sala']} | {e['inicio'].strftime('%Y-%m-%d')}"
+            f"{e['tipo']} | {e['sala']} | {e['fecha'].strftime('%Y-%m-%d')}"
             for e in planificador.eventos
         ]
 
@@ -76,7 +76,7 @@ elif opcion == "Eliminar evento":
             exito, mensaje = planificador.eliminar_evento(
                 evento_seleccionado["tipo"],
                 evento_seleccionado["sala"],
-                evento_seleccionado["inicio"].date()
+                evento_seleccionado["fecha"].date()
             )
 
             if exito:
@@ -86,7 +86,7 @@ elif opcion == "Eliminar evento":
                 with open("data/eventos.json", "w", encoding="utf-8") as f:
                     json.dump(
                         [
-                            {**ev, "inicio": ev["inicio"].date().isoformat()}
+                            {**ev, "fecha": ev["fecha"].date().isoformat()}
                             for ev in planificador.eventos
                         ],
                         f,
@@ -138,7 +138,7 @@ elif opcion == "Agregar evento":
             evento_nuevo = {
                 "tipo": tipo,
                 "sala": sala,
-                "inicio": datetime.combine(fecha, datetime.min.time()),
+                "fecha": datetime.combine(fecha, datetime.min.time()),
                 "recursos": recursos_asignados
             }
 
@@ -152,7 +152,7 @@ elif opcion == "Agregar evento":
                 with open("data/eventos.json", "w", encoding="utf-8") as f:
                     json.dump(
                         [
-                            {**ev, "inicio": ev["inicio"].date().isoformat()}
+                            {**ev, "fecha": ev["fecha"].date().isoformat()}
                             for ev in planificador.eventos
                         ],
                         f,
