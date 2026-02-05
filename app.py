@@ -107,20 +107,20 @@ elif opcion == "Agregar evento":
 
 
     # Inputs básicos
-    tipo = st.selectbox("Tipo de evento", list(planificador.restricciones.get("reglas_evento", {}).keys()))
+    tipo = st.selectbox("Tipo de evento", list(planificador.restricciones.get("tipos_eventos", {})))
     sala = st.selectbox("Sala", list(planificador.recursos.get("salas", {}).keys()))
     fecha = st.date_input("Fecha del evento")
 
-    # Recursos dinámicos (sin pequeña / grande y permitiendo exceder)
+    # Recursos dinámicos 
     recursos_asignados = {}
     st.markdown("**Recursos para asignar**")
 
     for categoria, recursos_categoria in planificador.recursos.items():
         if isinstance(recursos_categoria, dict) and categoria != "salas":
             st.markdown(f"*{categoria.capitalize()}*")
-            for rec, cantidad_total in recursos_categoria.items():
+            for rec in recursos_categoria.keys():
                 cant = st.number_input(
-                    f"{rec} (disponibles: {cantidad_total})",
+                    f"{rec}",
                     min_value=0,
                     value=0,
                     step=1,
@@ -134,7 +134,7 @@ elif opcion == "Agregar evento":
         if not tipo or not sala or not fecha:
             st.warning("Complete todos los campos obligatorios.")
         else:
-            # Construir objeto evento (SIN hora)
+            # Construir objeto evento
             evento_nuevo = {
                 "tipo": tipo,
                 "sala": sala,

@@ -29,16 +29,20 @@
     }
   },
 
-  "eventos_prohibidos": {
-    "Pequeña": ["Grabación de instrumental","Grabación de canción"],
-    "Grande": ["Grabación de doblaje", "Grabación de podcast"]
-  },
 
   "por_evento": {
     "Grabación de instrumental": {
       "prohibido": ["Micrófonos"]
     }
+  },
+
+
+  "eventos_prohibidos": {
+    "Pequeña": ["Grabación de instrumental","Grabación de canción"],
+    "Grande": ["Grabación de doblaje", "Grabación de podcast"]
   }
+
+
 },
 
   "reglas_evento": {
@@ -51,10 +55,18 @@
     "Grabación de canción": {
       "micrófonos": 1
     },
-    "Grabación de instrumental": {
+    "Grabación de instrumental": {   
       "micrófonos": 0
     }
   },
+
+
+  "tipos_eventos": [
+    "Grabación de podcast",
+    "Grabación de doblaje",
+    "Grabación de canción",
+    "Grabación de instrumental"
+  ],
 
   "personal_obligatorio": {
     "Pequeña": {

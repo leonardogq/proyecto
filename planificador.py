@@ -158,19 +158,13 @@ class PlanificadorEventos:
             minimo = reglas["micrófonos"]
             usados = recursos.get("Micrófonos", 0)
 
-            if minimo == 0:
-                if usados != 0:
-                    return (
-                        False,
-                        f"El evento '{tipo}' no puede incluir micrófonos"
-                    )
-            else:
-                if usados < minimo:
-                    return (
-                        False,
-                        f"El evento '{tipo}' requiere al menos "
-                        f"{minimo} micrófonos (se indicaron {usados})"
-                    )
+        
+            if usados < minimo:
+                return (
+                    False,
+                    f"El evento '{tipo}' requiere al menos "
+                    f"{minimo} micrófonos (se indicaron {usados})"
+                )
 
         return True, ""
 
@@ -304,6 +298,7 @@ class PlanificadorEventos:
     def validar_exclusiones_por_evento(self, evento):
             
             # Valida que el evento no incluya recursos prohibidos según el tipo de evento.
+            # La manera en que esta hecha esta validacion permite que se puedan extender las exclusiones por evento sin modificar el codigo
             
             errores = []
             # garantiza que haya tipo y recursos
@@ -324,7 +319,7 @@ class PlanificadorEventos:
             for recurso in prohibidos:
                 if recursos_evento.get(recurso, 0) > 0:
                     errores.append(
-                        f"El recurso '{recurso}' no puede usarse en el evento '{tipo}'"
+                        f"El evento '{tipo}' no puede incluir '{recurso}'"
                     )
 
             return errores

@@ -1,25 +1,9 @@
 [
   {
-    "tipo": "Grabación de doblaje",
-    "sala": "Pequeña",
-    "inicio": "2026-02-04",
-    "recursos": {
-      "Micrófonos": 2,
-      "Soportes de micrófono": 2,
-      "Audífonos": 2,
-      "Cables": 4,
-      "Técnicos de audio": 1
-    }
-  },
-  {
-    "tipo": "Grabación de canción",
+    "tipo": "Grabación de instrumental",
     "sala": "Grande",
-    "inicio": "2026-02-04",
+    "inicio": "2026-02-05",
     "recursos": {
-      "Micrófonos": 2,
-      "Soportes de micrófono": 2,
-      "Audífonos": 2,
-      "Cables": 4,
       "Técnicos de audio": 1,
       "Productor musical": 1
     }
