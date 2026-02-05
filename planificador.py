@@ -99,9 +99,6 @@ class PlanificadorEventos:
         # Valida la fecha del evento bajo la regla:
         # - Solo puede haber un evento por sala por día.
         
-        # garantiza que haya fecha y sala
-        if "fecha" not in evento or "sala" not in evento:
-            return False, "El evento debe tener fecha de fecha y sala"
 
         fecha = evento["fecha"]
         sala = evento["sala"]
@@ -134,13 +131,7 @@ class PlanificadorEventos:
         
         # Valida reglas específicas según el tipo de evento.
         
-        # garantiza que haya un tipo
-        if "tipo" not in evento:
-            return False, "El evento debe tener un tipo"
-
-        # garantiza que haya recursos
-        if "recursos" not in evento:
-            return False, "El evento debe especificar recursos"
+       
 
         tipo = evento["tipo"]
         recursos = evento["recursos"]
@@ -256,10 +247,6 @@ class PlanificadorEventos:
 
         errores = []
 
-        # garantiza que haya sala y recursos
-        if "sala" not in evento or "recursos" not in evento:
-            return ["El evento debe tener sala y recursos especificados"]
-
 
         sala = evento["sala"]
         recursos_evento = evento["recursos"]
@@ -301,9 +288,6 @@ class PlanificadorEventos:
             # La manera en que esta hecha esta validacion permite que se puedan extender las exclusiones por evento sin modificar el codigo
             
             errores = []
-            # garantiza que haya tipo y recursos
-            if "tipo" not in evento or "recursos" not in evento:
-                return ["El evento debe tener tipo y recursos especificados"]
 
             tipo = evento["tipo"]
             recursos_evento = evento["recursos"]
@@ -347,12 +331,7 @@ class PlanificadorEventos:
         
         # Valida que el evento incluya el personal obligatorio según la sala en la que se realiza.
         
-        # garantiza que haya sala y recursos
-        if not evento.get("sala"):
-            return False, "El evento debe especificar una sala"
-
-        if not evento.get("recursos"):
-            return False, "El evento debe especificar recursos"
+               
 
 
         sala = evento["sala"]
@@ -385,9 +364,8 @@ class PlanificadorEventos:
         
         errores = []
 
-        # garantiza que haya fecha y recursos
-        if "fecha" not in evento or "recursos" not in evento:
-            return ["El evento debe tener fecha de fecha y recursos especificados"]
+        if not evento.get("recursos"):
+            return False, "El evento debe especificar recursos"
 
         fecha_evento = evento["fecha"].date()
         recursos_solicitados = evento["recursos"]
