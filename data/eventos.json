@@ -22,5 +22,25 @@
       "Cables": 14,
       "Técnicos de audio": 1
     }
+  },
+  {
+    "tipo": "Grabación de instrumental",
+    "sala": "Grande",
+    "fecha": "2026-02-15",
+    "recursos": {
+      "Cables": 10,
+      "Técnicos de audio": 1,
+      "Productor musical": 1
+    }
+  },
+  {
+    "tipo": "Grabación de instrumental",
+    "sala": "Grande",
+    "fecha": "2026-02-14",
+    "recursos": {
+      "Cables": 5,
+      "Técnicos de audio": 1,
+      "Productor musical": 1
+    }
   }
 ]

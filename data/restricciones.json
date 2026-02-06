@@ -56,7 +56,8 @@
       "micrófonos": 1
     },
     "Grabación de instrumental": {   
-      "micrófonos": 0
+      "micrófonos": 0,
+      "requiere_instrumentos": true
     }
   },
 

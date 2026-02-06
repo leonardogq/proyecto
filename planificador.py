@@ -119,7 +119,7 @@ class PlanificadorEventos:
 
         reglas_evento = self.restricciones.get("reglas_evento", {})
 
-        # si el evento no se encuentra dentro de los definidos
+        # si el evento no se encuentra dentro de los definidos(no ocurrira nunca pero lo pongo igual)
         if tipo not in reglas_evento:
             errores.append(f"No existe el evento '{tipo}'")
             return errores
@@ -136,6 +136,20 @@ class PlanificadorEventos:
                     f"El evento '{tipo}' requiere al menos "
                     f"{minimo} micrófonos (se indicaron {usados})"
                 )
+
+                # Regla: evento requiere al menos un instrumento
+        if reglas.get("requiere_instrumentos"):
+            instrumentos = self.recursos.get("instrumentos", {})
+            total_instrumentos = sum(
+                cantidad for recurso, cantidad in recursos.items()
+                if recurso in instrumentos
+            )
+
+            if total_instrumentos == 0:
+                errores.append(
+                    f"El evento '{tipo}' debe incluir al menos un instrumento."
+                )
+
 
         return errores
 
