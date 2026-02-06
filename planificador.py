@@ -97,7 +97,7 @@ class PlanificadorEventos:
 
         for e in self.eventos:
             if e["sala"] == sala and e["fecha"].date() == fecha_evento:
-                sugerencia = self.sugerir_proxima_fecha_libre(sala, fecha_evento)
+                sugerencia = self.sugerir_proxima_fecha_libre( sala, fecha_evento, evento)
                 errores.append(
                     f"Ya existe un evento en la sala {sala} para el día {fecha_evento}. "
                     f"Sugerencia: próxima fecha libre {sugerencia}"
@@ -371,18 +371,54 @@ class PlanificadorEventos:
 
     # otros
 
-    def sugerir_proxima_fecha_libre(self, sala, fecha_ev):
-        
-        # Devuelve la próxima fecha libre para la sala indicada.
-        
-        fecha = fecha_ev
-        fechas_ocupadas = {e["fecha"].date() for e in self.eventos if e["sala"] == sala}
+    def sugerir_proxima_fecha_libre(self, sala, fecha_inicial, evento):
+        fecha = fecha_inicial
 
-        # Incrementamos día a día hasta encontrar uno libre
-        while fecha in fechas_ocupadas:
+        while True:
+            # 1. Verificar si la sala está libre ese día
+            sala_ocupada = any(
+                e["sala"] == sala and e["fecha"].date() == fecha
+                for e in self.eventos
+            )
+
+            if sala_ocupada:
+                fecha += timedelta(days=1)
+                continue
+
+            # 2. Calcular recursos ya ocupados ese día
+            recursos_ocupados = {}
+
+            for e in self.eventos:
+                if e["fecha"].date() == fecha:
+                    for recurso, cantidad in e["recursos"].items():
+                        recursos_ocupados[recurso] = recursos_ocupados.get(recurso, 0) + cantidad
+
+            # 3. Verificar si hay recursos suficientes para el nuevo evento
+            recursos_solicitados = evento["recursos"]
+
+            recursos_ok = True
+            for recursos_categoria in self.recursos.values():
+                if not isinstance(recursos_categoria, dict):
+                    continue
+
+                for recurso, total_disponible in recursos_categoria.items():
+                    usado = recursos_ocupados.get(recurso, 0)
+                    solicitado = recursos_solicitados.get(recurso, 0)
+
+                    if solicitado > (total_disponible - usado):
+                        recursos_ok = False
+                        break
+
+                if not recursos_ok:
+                    break
+
+            # 4. Si todo está bien, devolver la fecha
+            if recursos_ok:
+                return fecha
+
+            # 5. Si no, probar el siguiente día
             fecha += timedelta(days=1)
 
-        return fecha
 
 
 

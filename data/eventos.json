@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "tipo": "Grabación de podcast",
+    "sala": "Pequeña",
+    "fecha": "2026-02-06",
+    "recursos": {
+      "Micrófonos": 2,
+      "Soportes de micrófono": 2,
+      "Audífonos": 2,
+      "Cables": 4,
+      "Técnicos de audio": 1
+    }
+  },
+  {
+    "tipo": "Grabación de podcast",
+    "sala": "Pequeña",
+    "fecha": "2026-02-07",
+    "recursos": {
+      "Micrófonos": 7,
+      "Soportes de micrófono": 7,
+      "Audífonos": 7,
+      "Cables": 14,
+      "Técnicos de audio": 1
+    }
+  }
+]
