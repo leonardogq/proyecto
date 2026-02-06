@@ -107,7 +107,7 @@ elif opcion == "Agregar evento":
 
 
     # Inputs básicos
-    tipo = st.selectbox("Tipo de evento", list(planificador.restricciones.get("tipos_eventos", {})))
+    tipo = st.selectbox("Tipo de evento", list(planificador.recursos.get("eventos", {})))
     sala = st.selectbox("Sala", list(planificador.recursos.get("salas", {}).keys()))
     fecha = st.date_input("Fecha del evento")
 

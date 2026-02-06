@@ -60,14 +60,6 @@
     }
   },
 
-
-  "tipos_eventos": [
-    "Grabación de podcast",
-    "Grabación de doblaje",
-    "Grabación de canción",
-    "Grabación de instrumental"
-  ],
-
   "personal_obligatorio": {
     "Pequeña": {
       "Técnicos de audio": 1
@@ -76,9 +68,5 @@
       "Técnicos de audio": 1,
       "Productor musical": 1
     }
-  },
-
-  "reglas_generales": {
-    "evento_debe_tener_recursos": true
   }
 }

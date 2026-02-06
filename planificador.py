@@ -23,45 +23,25 @@ class PlanificadorEventos:
         
         errores = []
 
-        #  Validar fecha
-        valido, mensaje = self._validar_fechas(evento)
-        if not valido:
-            errores.append(mensaje)
-
-        #  Validar reglas específicas del tipo de evento
-        valido, mensaje = self._validar_reglas_evento(evento)
-        if not valido:
-            errores.append(mensaje)
-
-        #  Validar corequisitos
+        # Validaciones (todas devuelven listas)
+        errores += self._validar_fechas(evento)
+        errores += self._validar_reglas_evento(evento)
         errores += self.validar_corequisitos_por_recurso(evento)
         errores += self.validar_corequisitos_por_categoria(evento)
-
-        #  Validar exclusiones
         errores += self.validar_exclusiones_por_sala(evento)
         errores += self.validar_exclusiones_por_evento(evento)
-
-        #  Validar personal obligatorio
-        valido, mensaje = self._validar_personal_obligatorio(evento)
-        if not valido:
-            errores.append(mensaje)
-
-        #  Validar disponibilidad de recursos
+        errores += self.validar_evento_por_sala(evento)
+        errores += self._validar_personal_obligatorio(evento)
         errores += self._validar_disponibilidad_recursos(evento)
 
-        # Validar eventos prohibidos por sala
-        errores += self.validar_evento_por_sala(evento)
-
-
-        #  Resultado final
+        # Resultado final
         if errores:
             return False, errores
 
         # si todo ok, agregar evento
         self.eventos.append(evento)
-        self.guardar_eventos_json()  #  guardar cambios en JSON
+        self.guardar_eventos_json()  # guardar cambios en JSON
     
-
         return True, "Evento agregado correctamente"
 
     def eliminar_evento(self, tipo, sala, fecha):
@@ -88,10 +68,10 @@ class PlanificadorEventos:
             return False, "Evento no encontrado"
 
         self.eventos.remove(evento_a_eliminar)
-        self.guardar_eventos_json()  #  actualizar JSON tras eliminar
+        self.guardar_eventos_json()  # actualizar JSON tras eliminar
         return True, "Evento eliminado correctamente"
 
-    # Validaciones internas
+    #             VALIDACIONES 
 
     # fechas listo
     def _validar_fechas(self, evento):
@@ -99,31 +79,32 @@ class PlanificadorEventos:
         # Valida la fecha del evento bajo la regla:
         # - Solo puede haber un evento por sala por día.
         
+        errores = []
 
-        fecha = evento["fecha"]
-        sala = evento["sala"]
+        fecha = evento.get("fecha")
+        sala = evento.get("sala")
 
         if not isinstance(fecha, datetime):
-            return False, "La fecha de fecha debe ser un objeto datetime"
+            errores.append("La fecha debe ser un objeto datetime")
+            return errores
 
         fecha_evento = fecha.date()
         fecha_hoy = date.today()
 
         # No permitir fechas pasadas
         if fecha_evento < fecha_hoy:
-            return False, "No se pueden crear eventos en fechas anteriores a hoy"
-
+            errores.append("No se pueden crear eventos en fechas anteriores a hoy")
 
         for e in self.eventos:
             if e["sala"] == sala and e["fecha"].date() == fecha_evento:
-                # Hay conflicto, llamamos al método que sugiere próxima fecha libre
                 sugerencia = self.sugerir_proxima_fecha_libre(sala, fecha_evento)
-                return False, (
+                errores.append(
                     f"Ya existe un evento en la sala {sala} para el día {fecha_evento}. "
                     f"Sugerencia: próxima fecha libre {sugerencia}"
                 )
+                break
 
-        return True, ""
+        return errores
 
 
     # reglas listo
@@ -131,45 +112,40 @@ class PlanificadorEventos:
         
         # Valida reglas específicas según el tipo de evento.
         
-       
+        errores = []
 
-        tipo = evento["tipo"]
-        recursos = evento["recursos"]
+        tipo = evento.get("tipo")
+        recursos = evento.get("recursos", {})
 
         reglas_evento = self.restricciones.get("reglas_evento", {})
 
-        # si el evento no se encuentra dentro de los 4 definidos devuelve false
+        # si el evento no se encuentra dentro de los definidos
         if tipo not in reglas_evento:
-            return False, f"No existen reglas definidas para el evento '{tipo}'"
+            errores.append(f"No existe el evento '{tipo}'")
+            return errores
 
         reglas = reglas_evento[tipo]
 
-        # regla micrófonos(podria hacerlo general pero por ahora solo esta esta)
+        # regla micrófonos (por ahora solo esta)
         if "micrófonos" in reglas:
             minimo = reglas["micrófonos"]
             usados = recursos.get("Micrófonos", 0)
 
-        
             if usados < minimo:
-                return (
-                    False,
+                errores.append(
                     f"El evento '{tipo}' requiere al menos "
                     f"{minimo} micrófonos (se indicaron {usados})"
                 )
 
-        return True, ""
+        return errores
 
 
 
-    # co_requisitos ver luego
+    # co-requisitos por recurso
     def validar_corequisitos_por_recurso(self, evento):
         
         # Valida que cada recurso del evento cumpla con los corequisitos definidos entre recursos individuales.
 
-        # Regla:
-        # Por cada unidad de un recurso (clave), debe existir al menos la misma cantidad de cada recurso listado en su valor (lista de corequisitos).
-    
-        
         errores = []
         recursos_evento = evento.get("recursos", {})
         coreq_recursos = self.restricciones.get("corequisitos", {}).get("recursos", {})
@@ -188,18 +164,14 @@ class PlanificadorEventos:
 
         return errores
 
+
     def validar_corequisitos_por_categoria(self, evento):
         
         # Valida que cada recurso del evento cumpla con los corequisitos definidos en su categoría.
         
-
-        # Regla:
-        # Por cada unidad de un recurso (que no esté en 'excepto'), debe haber al menos la misma cantidad de cada recurso en 'requiere'.
-          
-        
         errores = []
-        recursos_evento = evento["recursos"]
-        categorias = self.restricciones["corequisitos"]["categorias"]
+        recursos_evento = evento.get("recursos", {})
+        categorias = self.restricciones.get("corequisitos", {}).get("categorias", {})
 
         # Acumulador total de requerimientos (ej: cables)
         requerimientos_totales = {}
@@ -244,12 +216,10 @@ class PlanificadorEventos:
         
         # valida que el evento no incluya recursos prohibidos según la sala en la que se realiza.
 
-
         errores = []
 
-
-        sala = evento["sala"]
-        recursos_evento = evento["recursos"]
+        sala = evento.get("sala")
+        recursos_evento = evento.get("recursos", {})
 
         exclusiones_sala = self.restricciones.get("exclusiones", {}).get("por_sala", {})
 
@@ -282,31 +252,31 @@ class PlanificadorEventos:
 
         return errores
 
+
     def validar_exclusiones_por_evento(self, evento):
             
-            # Valida que el evento no incluya recursos prohibidos según el tipo de evento.
-            # La manera en que esta hecha esta validacion permite que se puedan extender las exclusiones por evento sin modificar el codigo
-            
-            errores = []
+        # Valida que el evento no incluya recursos prohibidos según el tipo de evento.
+        
+        errores = []
 
-            tipo = evento["tipo"]
-            recursos_evento = evento["recursos"]
+        tipo = evento.get("tipo")
+        recursos_evento = evento.get("recursos", {})
 
-            exclusiones_evento = self.restricciones.get("exclusiones", {}).get("por_evento", {})
+        exclusiones_evento = self.restricciones.get("exclusiones", {}).get("por_evento", {})
 
-            if tipo not in exclusiones_evento:
-                return errores
-
-            reglas = exclusiones_evento[tipo]
-            prohibidos = reglas.get("prohibido", [])
-
-            for recurso in prohibidos:
-                if recursos_evento.get(recurso, 0) > 0:
-                    errores.append(
-                        f"El evento '{tipo}' no puede incluir '{recurso}'"
-                    )
-
+        if tipo not in exclusiones_evento:
             return errores
+
+        reglas = exclusiones_evento[tipo]
+        prohibidos = reglas.get("prohibido", [])
+
+        for recurso in prohibidos:
+            if recursos_evento.get(recurso, 0) > 0:
+                errores.append(
+                    f"El evento '{tipo}' no puede incluir '{recurso}'"
+                )
+
+        return errores
 
 
     # sala-evento prohibido listo
@@ -314,9 +284,9 @@ class PlanificadorEventos:
         errores = []
 
         eventos_prohibidos = self.restricciones.get("exclusiones", {}).get("eventos_prohibidos", {})
-        prohibidos_en_sala = eventos_prohibidos.get(evento["sala"], [])
+        prohibidos_en_sala = eventos_prohibidos.get(evento.get("sala"), [])
 
-        if evento["tipo"] in prohibidos_en_sala:
+        if evento.get("tipo") in prohibidos_en_sala:
             errores.append(
                 f"El evento '{evento['tipo']}' no se puede realizar en la sala '{evento['sala']}'."
             )
@@ -331,29 +301,27 @@ class PlanificadorEventos:
         
         # Valida que el evento incluya el personal obligatorio según la sala en la que se realiza.
         
-               
+        errores = []
 
-
-        sala = evento["sala"]
-        recursos = evento["recursos"]
+        sala = evento.get("sala")
+        recursos = evento.get("recursos", {})
 
         reglas_personal = self.restricciones.get("personal_obligatorio", {})
 
         if sala not in reglas_personal:
-            return True, ""
+            return errores
 
         personal_requerido = reglas_personal[sala]
 
         for rol, minimo in personal_requerido.items():
             usados = recursos.get(rol, 0)
             if usados < minimo:
-                return (
-                    False,
+                errores.append(
                     f"En la sala {sala} se requiere al menos "
                     f"{minimo} '{rol}' (se indicaron {usados})"
                 )
 
-        return True, ""
+        return errores
 
 
     # disp recursos
@@ -361,27 +329,27 @@ class PlanificadorEventos:
         
         # Valida que el evento pueda usar los recursos solicitados, considerando los recursos ya ocupados por otros eventos el mismo día.
         
-        
         errores = []
 
         if not evento.get("recursos"):
-            return False, "El evento debe especificar recursos"
+            errores.append("El evento debe tener recursos especificados")
+            return errores
 
-        fecha_evento = evento["fecha"].date()
-        recursos_solicitados = evento["recursos"]
+        fecha_evento = evento.get("fecha").date()
+        recursos_solicitados = evento.get("recursos", {})
 
         # Contar recursos ocupados por otros eventos el mismo día
         recursos_ocupados = {}
 
         for e in self.eventos:
-            if e["fecha"].date() != fecha_evento:
+            if e.get("fecha").date() != fecha_evento:
                 continue
 
-            for recurso, cantidad in e["recursos"].items():
+            for recurso, cantidad in e.get("recursos", {}).items():
                 recursos_ocupados[recurso] = recursos_ocupados.get(recurso, 0) + cantidad
 
         # Verificar disponibilidad real
-        for categoria, recursos_categoria in self.recursos.items():
+        for recursos_categoria in self.recursos.values():
             if not isinstance(recursos_categoria, dict):
                 continue
 
@@ -405,7 +373,7 @@ class PlanificadorEventos:
 
     def sugerir_proxima_fecha_libre(self, sala, fecha_ev):
         
-        # Devuelve la próxima fecha libre para la sala indicada, sin modificar la lista de eventos ni la lógica de _validar_fechas.
+        # Devuelve la próxima fecha libre para la sala indicada.
         
         fecha = fecha_ev
         fechas_ocupadas = {e["fecha"].date() for e in self.eventos if e["sala"] == sala}
@@ -421,12 +389,12 @@ class PlanificadorEventos:
     def mostrar_agenda(self):
         
         # Devuelve la lista completa de eventos registrados, con toda su información.
-        # Ordena por fecha de fecha para que se vea la agenda cronológicamente.
+        # Ordena por fecha para que se vea la agenda cronológicamente.
         
         if not self.eventos:
             return "No hay eventos programados."
 
-        # Ordenamos los eventos por fecha de fecha
+        # Ordenamos los eventos por fecha
         eventos_ordenados = sorted(self.eventos, key=lambda e: e["fecha"])
 
         agenda = []
@@ -438,7 +406,7 @@ class PlanificadorEventos:
             agenda.append(
                 f"Evento: {tipo}\n"
                 f"  Sala: {sala}\n"
-                f"  Fecha y hora: {fecha}\n"
+                f"  Fecha: {fecha}\n"
                 f"  Recursos: {recursos}\n"
             )
 
@@ -482,12 +450,12 @@ class PlanificadorEventos:
         
         # Carga los recursos disponibles desde un archivo JSON.
         
-        with open("data/recursos.json", "r", encoding="utf-8") as f:
+        with open(archivo, "r", encoding="utf-8") as f:
             self.recursos = json.load(f)
 
     def cargar_restricciones_json(self, archivo="data/restricciones.json"):
         
         # Carga las restricciones desde un archivo JSON.
         
-        with open("data/restricciones.json", "r", encoding="utf-8") as f:
+        with open(archivo, "r", encoding="utf-8") as f:
             self.restricciones = json.load(f)
