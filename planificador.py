@@ -15,15 +15,10 @@ class PlanificadorEventos:
     # Métodos principales para agregar y eliminar eventos
 
     def agregar_evento(self, evento):
-        
-        # Intenta agregar un evento al planificador.
-        # Ejecuta todas las validaciones en orden.
-        # Devuelve (True, "") si se agrega correctamente.
-        # Devuelve (False, lista_de_errores) si falla alguna validación.
-        
+
         errores = []
 
-        # Validaciones (todas devuelven listas)
+        # 1. TODAS las validaciones que NO sugieren fecha
         errores += self._validar_fechas(evento)
         errores += self._validar_reglas_evento(evento)
         errores += self.validar_corequisitos_por_recurso(evento)
@@ -34,15 +29,22 @@ class PlanificadorEventos:
         errores += self._validar_personal_obligatorio(evento)
         errores += self._validar_disponibilidad_recursos(evento)
 
-        # Resultado final
+        # Si hay errores, NO se valida sala ni se sugiere fecha
         if errores:
             return False, errores
 
-        # si todo ok, agregar evento
+        # 2. SOLO aquí se valida sala + sugerencia
+        errores += self._validar_disponibilidad_sala(evento)
+
+        if errores:
+            return False, errores
+
+        # 3. Guardar evento
         self.eventos.append(evento)
-        self.guardar_eventos_json()  # guardar cambios en JSON
-    
+        self.eventos.sort(key=lambda e: e["fecha"])
+        self.guardar_eventos_json()
         return True, "Evento agregado correctamente"
+
 
     def eliminar_evento(self, tipo, sala, fecha):
         
@@ -77,12 +79,12 @@ class PlanificadorEventos:
     def _validar_fechas(self, evento):
         
         # Valida la fecha del evento bajo la regla:
-        # - Solo puede haber un evento por sala por día.
+        # no pueden haber eventos en fechas pasadas
         
         errores = []
 
         fecha = evento.get("fecha")
-        sala = evento.get("sala")
+       
 
         if not isinstance(fecha, datetime):
             errores.append("La fecha debe ser un objeto datetime")
@@ -95,14 +97,6 @@ class PlanificadorEventos:
         if fecha_evento < fecha_hoy:
             errores.append("No se pueden crear eventos en fechas anteriores a hoy")
 
-        for e in self.eventos:
-            if e["sala"] == sala and e["fecha"].date() == fecha_evento:
-                sugerencia = self.sugerir_proxima_fecha_libre( sala, fecha_evento, evento)
-                errores.append(
-                    f"Ya existe un evento en la sala {sala} para el día {fecha_evento}. "
-                    f"Sugerencia: próxima fecha libre {sugerencia}"
-                )
-                break
 
         return errores
 
@@ -173,7 +167,7 @@ class PlanificadorEventos:
                 cantidad_req = recursos_evento.get(req, 0)
                 if cantidad_req < cantidad_recurso:
                     errores.append(
-                        f"'{recurso}' requiere al menos {cantidad_recurso} unidades de '{req}' (hay {cantidad_req})."
+                        f"Si hay {cantidad_recurso} '{recurso}' debe haber {cantidad_recurso} '{req}' (hay {cantidad_req})."
                     )
 
         return errores
@@ -375,92 +369,104 @@ class PlanificadorEventos:
 
                 if solicitado > disponible_real:
                     errores.append(
-                        f"No hay suficientes '{recurso}'. "
+                        f"No se dispone de suficientes '{recurso}'. "
                         f"Disponibles: {disponible_real}, solicitados: {solicitado}."
                     )
 
         return errores
+
+
+
+
+
+
+
+
+    def _validar_disponibilidad_sala(self, evento):
+        errores = []
+
+        sala = evento["sala"]
+        fecha_evento = evento["fecha"].date()
+
+        for e in self.eventos:
+            if e["sala"] == sala and e["fecha"].date() == fecha_evento:
+                sugerencia = self.sugerir_proxima_fecha_libre(sala, fecha_evento, evento)
+
+                
+                errores.append(
+                    f"Ya existe un evento en la sala {sala} para el día {fecha_evento}. "
+                    f"Sugerencia: próxima fecha libre {sugerencia}"
+                    )
+                break
+
+        return errores
+
+
+        
+
+
+
+
+
+
+
+
 
     
 
     # otros
 
     def sugerir_proxima_fecha_libre(self, sala, fecha_inicial, evento):
-        fecha = fecha_inicial
 
-        while True:
+        fecha = fecha_inicial
+        recursos_solicitados = evento.get("recursos", {})
+
+        MAX_DIAS = 365  # límite de búsqueda: 1 año
+
+        for _ in range(MAX_DIAS):
+            # Protección contra overflow
+            try:
+                fecha_actual = fecha
+            except OverflowError:
+                return None
+
             # 1. Verificar si la sala está libre ese día
-            sala_ocupada = any(
-                e["sala"] == sala and e["fecha"].date() == fecha
+            ocupada = any(
+                e["sala"] == sala and e["fecha"].date() == fecha_actual
                 for e in self.eventos
             )
-
-            if sala_ocupada:
-                fecha += timedelta(days=1)
+            if ocupada:
+                fecha = fecha_actual + timedelta(days=1)
                 continue
 
-            # 2. Calcular recursos ya ocupados ese día
+            # 2. Verificar disponibilidad de recursos ese día
             recursos_ocupados = {}
-
             for e in self.eventos:
-                if e["fecha"].date() == fecha:
-                    for recurso, cantidad in e["recursos"].items():
-                        recursos_ocupados[recurso] = recursos_ocupados.get(recurso, 0) + cantidad
-
-            # 3. Verificar si hay recursos suficientes para el nuevo evento
-            recursos_solicitados = evento["recursos"]
+                if e["fecha"].date() != fecha_actual:
+                    continue
+                for recurso, cantidad in e["recursos"].items():
+                    recursos_ocupados[recurso] = recursos_ocupados.get(recurso, 0) + cantidad
 
             recursos_ok = True
-            for recursos_categoria in self.recursos.values():
-                if not isinstance(recursos_categoria, dict):
+            for categoria in self.recursos.values():
+                if not isinstance(categoria, dict):
                     continue
-
-                for recurso, total_disponible in recursos_categoria.items():
+                for recurso, total_disponible in categoria.items():
                     usado = recursos_ocupados.get(recurso, 0)
                     solicitado = recursos_solicitados.get(recurso, 0)
-
                     if solicitado > (total_disponible - usado):
                         recursos_ok = False
                         break
-
                 if not recursos_ok:
                     break
 
-            # 4. Si todo está bien, devolver la fecha
             if recursos_ok:
-                return fecha
+                return fecha_actual
 
-            # 5. Si no, probar el siguiente día
-            fecha += timedelta(days=1)
+            fecha = fecha_actual + timedelta(days=1)
 
+        return None  # No existe fecha válida en el rango buscado
 
-
-
-    def mostrar_agenda(self):
-        
-        # Devuelve la lista completa de eventos registrados, con toda su información.
-        # Ordena por fecha para que se vea la agenda cronológicamente.
-        
-        if not self.eventos:
-            return "No hay eventos programados."
-
-        # Ordenamos los eventos por fecha
-        eventos_ordenados = sorted(self.eventos, key=lambda e: e["fecha"])
-
-        agenda = []
-        for e in eventos_ordenados:
-            tipo = e.get("tipo", "Desconocido")
-            sala = e.get("sala", "No asignada")
-            fecha = e.get("fecha", "No asignada")
-            recursos = e.get("recursos", {})
-            agenda.append(
-                f"Evento: {tipo}\n"
-                f"  Sala: {sala}\n"
-                f"  Fecha: {fecha}\n"
-                f"  Recursos: {recursos}\n"
-            )
-
-        return "\n".join(agenda)
 
 
 

@@ -25,7 +25,8 @@
   },
   "eventos": {
     "Grabación de instrumental": [
-    "No se pueden usar micrófonos"
+    "No se pueden usar micrófonos",
+    "Requiere al menos un instrumento"
     ],
     "Grabación de podcast": [
     "Se requieren 2 micrófonos"

@@ -23,7 +23,7 @@ with st.expander("Recursos disponibles", expanded=False):
         recursos = json.load(f)
     st.json(recursos)
 
-with st.expander("Restricciones por sala, evento y categoría", expanded=False):
+with st.expander("Reglas del estudio", expanded=False):
     with open("data/restricciones_usuario.json", "r", encoding="utf-8") as f:
         restricciones_usuario = json.load(f)
     st.json(restricciones_usuario)
