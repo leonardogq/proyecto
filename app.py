@@ -23,11 +23,6 @@ with st.expander("Recursos disponibles", expanded=False):
         recursos = json.load(f)
     st.json(recursos)
 
-with st.expander("Reglas del estudio", expanded=False):
-    with open("data/restricciones_usuario.json", "r", encoding="utf-8") as f:
-        restricciones_usuario = json.load(f)
-    st.json(restricciones_usuario)
-
 
 # Opciones principales
 
@@ -53,7 +48,6 @@ if opcion == "Ver agenda":
                 st.markdown(f"- {rec}: {cant}")
             st.markdown("---")
 
-
 # Opción: Eliminar Evento
 
 elif opcion == "Eliminar evento":
@@ -62,7 +56,38 @@ elif opcion == "Eliminar evento":
     if not planificador.eventos:
         st.info("No hay eventos planificados.")
     else:
-        # Crear lista de eventos legibles
+        # Confirmación simple para limpiar agenda
+        if "confirmar_borrado" not in st.session_state:
+            st.session_state.confirmar_borrado = False
+
+        if not st.session_state.confirmar_borrado:
+            if st.button("Eliminar todos"):
+                st.session_state.confirmar_borrado = True
+                st.rerun()
+        else:
+            st.warning("¿Estás seguro de que quieres eliminar TODOS los eventos?")
+            col1, col2 = st.columns(2)
+
+            with col1:
+                if st.button("Sí, eliminar todo"):
+                    cantidad = len(planificador.eventos)
+                    planificador.eventos = []
+
+                    with open("data/eventos.json", "w", encoding="utf-8") as f:
+                        json.dump([], f, ensure_ascii=False, indent=2)
+
+                    st.success(f"Se eliminaron {cantidad} eventos.")
+                    st.session_state.confirmar_borrado = False
+                    st.rerun()
+
+            with col2:
+                if st.button("Cancelar"):
+                    st.session_state.confirmar_borrado = False
+                    st.rerun()
+
+        st.markdown("---")
+
+        # Eliminar un solo evento
         opciones = [
             f"{e['tipo']} | {e['sala']} | {e['fecha'].strftime('%Y-%m-%d')}"
             for e in planificador.eventos
@@ -82,7 +107,6 @@ elif opcion == "Eliminar evento":
             if exito:
                 st.success(mensaje)
 
-                # Guardar cambios en JSON
                 with open("data/eventos.json", "w", encoding="utf-8") as f:
                     json.dump(
                         [
@@ -94,9 +118,10 @@ elif opcion == "Eliminar evento":
                         indent=2
                     )
 
-                st.rerun()  # Refresca la app correctamente
+                st.rerun()
             else:
                 st.error(mensaje)
+
 
 
 

@@ -4,69 +4,10 @@
     "sala": "Pequeña",
     "fecha": "2026-02-07",
     "recursos": {
-      "Micrófonos": 7,
-      "Soportes de micrófono": 7,
-      "Audífonos": 7,
-      "Cables": 14,
-      "Técnicos de audio": 1
-    }
-  },
-  {
-    "tipo": "Grabación de doblaje",
-    "sala": "Pequeña",
-    "fecha": "2026-02-08",
-    "recursos": {
-      "Micrófonos": 1,
-      "Soportes de micrófono": 1,
-      "Audífonos": 1,
-      "Cables": 4,
-      "Técnicos de audio": 1
-    }
-  },
-  {
-    "tipo": "Grabación de podcast",
-    "sala": "Pequeña",
-    "fecha": "2026-02-09",
-    "recursos": {
-      "Micrófonos": 2,
-      "Soportes de micrófono": 2,
-      "Audífonos": 2,
-      "Cables": 4,
-      "Técnicos de audio": 1
-    }
-  },
-  {
-    "tipo": "Grabación de podcast",
-    "sala": "Pequeña",
-    "fecha": "2026-02-10",
-    "recursos": {
-      "Micrófonos": 2,
-      "Soportes de micrófono": 2,
-      "Audífonos": 2,
-      "Cables": 4,
-      "Técnicos de audio": 1
-    }
-  },
-  {
-    "tipo": "Grabación de instrumental",
-    "sala": "Grande",
-    "fecha": "2026-02-10",
-    "recursos": {
-      "Cables": 3,
-      "Pianola": 1,
-      "Técnicos de audio": 1,
-      "Productor musical": 1
-    }
-  },
-  {
-    "tipo": "Grabación de doblaje",
-    "sala": "Pequeña",
-    "fecha": "2026-02-11",
-    "recursos": {
-      "Micrófonos": 1,
-      "Soportes de micrófono": 1,
-      "Audífonos": 1,
-      "Cables": 2,
+      "Micrófonos": 5,
+      "Soportes de micrófono": 5,
+      "Audífonos": 5,
+      "Cables": 10,
       "Técnicos de audio": 1
     }
   }

@@ -18,23 +18,37 @@ class PlanificadorEventos:
 
         errores = []
 
-        # 1. TODAS las validaciones que NO sugieren fecha
+        # 1. TODAS las validaciones de evento
+
+
         errores += self._validar_fechas(evento)
-        errores += self._validar_reglas_evento(evento)
+        errores += self._validar_disponibilidad_recursos(evento)
+
+        if errores:
+            return False, errores
+        
+
         errores += self.validar_corequisitos_por_recurso(evento)
         errores += self.validar_corequisitos_por_categoria(evento)
         errores += self.validar_exclusiones_por_sala(evento)
         errores += self.validar_exclusiones_por_evento(evento)
         errores += self.validar_evento_por_sala(evento)
+        errores += self._validar_reglas_evento(evento)
         errores += self._validar_personal_obligatorio(evento)
-        errores += self._validar_disponibilidad_recursos(evento)
+        
 
-        # Si hay errores, NO se valida sala ni se sugiere fecha
+
         if errores:
             return False, errores
 
-        # 2. SOLO aquí se valida sala + sugerencia
+        # aquí se valida sala y sugerencia
         errores += self._validar_disponibilidad_sala(evento)
+
+        if errores:
+            return False, errores
+        
+        # si hay recursos ocupados ese dia, sugiere fecha
+        errores += self._validar_recursos_fecha(evento)
 
         if errores:
             return False, errores
@@ -92,10 +106,15 @@ class PlanificadorEventos:
 
         fecha_evento = fecha.date()
         fecha_hoy = date.today()
+        fecha_maxima = fecha_hoy + timedelta(days=365)
 
         # No permitir fechas pasadas
         if fecha_evento < fecha_hoy:
             errores.append("No se pueden crear eventos en fechas anteriores a hoy")
+        
+        # limite de un año de anticipación
+        if fecha_evento > fecha_maxima:
+            errores.append("No se pueden crear eventos con más de un año de anticipación")
 
 
         return errores
@@ -103,9 +122,6 @@ class PlanificadorEventos:
 
     # reglas listo
     def _validar_reglas_evento(self, evento):
-        
-        # Valida reglas específicas según el tipo de evento.
-        
         errores = []
 
         tipo = evento.get("tipo")
@@ -113,27 +129,29 @@ class PlanificadorEventos:
 
         reglas_evento = self.restricciones.get("reglas_evento", {})
 
-        # si el evento no se encuentra dentro de los definidos(no ocurrira nunca pero lo pongo igual)
         if tipo not in reglas_evento:
             errores.append(f"No existe el evento '{tipo}'")
             return errores
 
         reglas = reglas_evento[tipo]
 
-        # regla micrófonos (por ahora solo esta)
-        if "micrófonos" in reglas:
-            minimo = reglas["micrófonos"]
-            usados = recursos.get("Micrófonos", 0)
+        # Reglas de cantidad mínima por recurso
+        for recurso, minimo in reglas.items():
+            if not isinstance(minimo, int) or isinstance(minimo, bool):
+                continue
+
+            usados = recursos.get(recurso.capitalize(), 0)
 
             if usados < minimo:
                 errores.append(
                     f"El evento '{tipo}' requiere al menos "
-                    f"{minimo} micrófonos (se indicaron {usados})"
+                    f"{minimo} {recurso} (se indicaron {usados})"
                 )
 
-                # Regla: evento requiere al menos un instrumento
+        # Reglas lógicas adicionales
         if reglas.get("requiere_instrumentos"):
             instrumentos = self.recursos.get("instrumentos", {})
+
             total_instrumentos = sum(
                 cantidad for recurso, cantidad in recursos.items()
                 if recurso in instrumentos
@@ -144,8 +162,8 @@ class PlanificadorEventos:
                     f"El evento '{tipo}' debe incluir al menos un instrumento."
                 )
 
-
         return errores
+
 
 
 
@@ -167,7 +185,7 @@ class PlanificadorEventos:
                 cantidad_req = recursos_evento.get(req, 0)
                 if cantidad_req < cantidad_recurso:
                     errores.append(
-                        f"Si hay {cantidad_recurso} '{recurso}' debe haber {cantidad_recurso} '{req}' (hay {cantidad_req})."
+                        f"Si hay {cantidad_recurso} '{recurso}' debe haber {cantidad_recurso} '{req}' (se indicaron {cantidad_req})."
                     )
 
         return errores
@@ -212,7 +230,7 @@ class PlanificadorEventos:
             total_en_evento = recursos_evento.get(req, 0)
             if total_en_evento < total_requerido:
                 errores.append(
-                    f"Se requieren {total_requerido} '{req}', pero solo hay {total_en_evento}."
+                    f"Se requieren {total_requerido} '{req}', pero solo se indicaron {total_en_evento}."
                 )
 
         return errores
@@ -343,34 +361,19 @@ class PlanificadorEventos:
             errores.append("El evento debe tener recursos especificados")
             return errores
 
-        fecha_evento = evento.get("fecha").date()
         recursos_solicitados = evento.get("recursos", {})
 
-        # Contar recursos ocupados por otros eventos el mismo día
-        recursos_ocupados = {}
-
-        for e in self.eventos:
-            if e.get("fecha").date() != fecha_evento:
+        for categoria in self.recursos.values():
+            if not isinstance(categoria, dict):
                 continue
 
-            for recurso, cantidad in e.get("recursos", {}).items():
-                recursos_ocupados[recurso] = recursos_ocupados.get(recurso, 0) + cantidad
-
-        # Verificar disponibilidad real
-        for recursos_categoria in self.recursos.values():
-            if not isinstance(recursos_categoria, dict):
-                continue
-
-            for recurso, total_disponible in recursos_categoria.items():
-                usado = recursos_ocupados.get(recurso, 0)
+            for recurso, total_disponible in categoria.items():
                 solicitado = recursos_solicitados.get(recurso, 0)
 
-                disponible_real = total_disponible - usado
-
-                if solicitado > disponible_real:
+                if solicitado > total_disponible:
                     errores.append(
-                        f"No se dispone de suficientes '{recurso}'. "
-                        f"Disponibles: {disponible_real}, solicitados: {solicitado}."
+                        f"Se disponen de {total_disponible} '{recurso}', "
+                        f"pero se solicitaron {solicitado}."
                     )
 
         return errores
@@ -395,7 +398,7 @@ class PlanificadorEventos:
                 
                 errores.append(
                     f"Ya existe un evento en la sala {sala} para el día {fecha_evento}. "
-                    f"Sugerencia: próxima fecha libre {sugerencia}"
+                    f"Sugerencia: próxima fecha con recursos libres {sugerencia}"
                     )
                 break
 
@@ -406,6 +409,51 @@ class PlanificadorEventos:
 
 
 
+    def _validar_recursos_fecha(self, evento):
+        errores = []
+
+        fecha_evento = evento.get("fecha").date()
+        recursos_solicitados = evento.get("recursos", {})
+
+        recursos_ocupados = {}
+
+        for e in self.eventos:
+            if e.get("fecha").date() != fecha_evento:
+                continue
+
+            for recurso, cantidad in e.get("recursos", {}).items():
+                recursos_ocupados[recurso] = recursos_ocupados.get(recurso, 0) + cantidad
+
+        conflictos = []
+        
+
+        for categoria in self.recursos.values():
+            if not isinstance(categoria, dict):
+                continue
+
+            for recurso, total_disponible in categoria.items():
+                solicitado = recursos_solicitados.get(recurso, 0)
+                usado = recursos_ocupados.get(recurso, 0)
+
+                disponible_real = total_disponible - usado
+
+                if solicitado > disponible_real:
+                    conflictos.append(f"{recurso}:{disponible_real}")
+
+        if conflictos:
+            sugerencia = self.sugerir_proxima_fecha_libre(
+                evento["sala"], fecha_evento, evento
+            )
+
+        
+
+            errores.append(
+                f"No hay suficientes recursos disponibles ese día: "
+                f"{', '.join(conflictos)}. "
+                f"Sugerencia: próxima fecha libre {sugerencia}."
+            )
+
+        return errores
 
 
 
