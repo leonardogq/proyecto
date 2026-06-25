@@ -140,7 +140,7 @@ class PlanificadorEventos:
             if not isinstance(minimo, int) or isinstance(minimo, bool):
                 continue
 
-            usados = recursos.get(recurso.capitalize(), 0)
+            usados = recursos.get(recurso, 0)
 
             if usados < minimo:
                 errores.append(

@@ -2,12 +2,12 @@
   {
     "tipo": "Grabación de podcast",
     "sala": "Pequeña",
-    "fecha": "2026-02-07",
+    "fecha": "2026-03-13",
     "recursos": {
-      "Micrófonos": 5,
-      "Soportes de micrófono": 5,
-      "Audífonos": 5,
-      "Cables": 10,
+      "Micrófonos": 2,
+      "Soportes de micrófono": 2,
+      "Audífonos": 2,
+      "Cables": 4,
       "Técnicos de audio": 1
     }
   }

@@ -47,16 +47,16 @@
 
   "reglas_evento": {
     "Grabación de podcast": {
-      "micrófonos": 2
+      "Micrófonos": 2
     },
     "Grabación de doblaje": {
-      "micrófonos": 1
+      "Micrófonos": 1
     },
     "Grabación de canción": {
-      "micrófonos": 1
+      "Micrófonos": 1
     },
     "Grabación de instrumental": {   
-      "micrófonos": 0,
+      "Micrófonos": 0,
       "requiere_instrumentos": true
     }
   },
