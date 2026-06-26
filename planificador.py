@@ -28,11 +28,16 @@ class PlanificadorEventos:
             return False, errores
         
 
-        errores += self.validar_corequisitos_por_recurso(evento)
-        errores += self.validar_corequisitos_por_categoria(evento)
         errores += self.validar_exclusiones_por_sala(evento)
         errores += self.validar_exclusiones_por_evento(evento)
         errores += self.validar_evento_por_sala(evento)
+        
+        if errores:
+            return False, errores
+
+
+        errores += self.validar_corequisitos_por_recurso(evento)
+        errores += self.validar_corequisitos_por_categoria(evento)
         errores += self._validar_reglas_evento(evento)
         errores += self._validar_personal_obligatorio(evento)
         
@@ -230,7 +235,7 @@ class PlanificadorEventos:
             total_en_evento = recursos_evento.get(req, 0)
             if total_en_evento < total_requerido:
                 errores.append(
-                    f"Se requieren {total_requerido} '{req}', pero solo se indicaron {total_en_evento}."
+                    f"Se requieren al menos {total_requerido} '{req}' según los recursos actualmente seleccionados, pero solo se indicaron {total_en_evento}."
                 )
 
         return errores
