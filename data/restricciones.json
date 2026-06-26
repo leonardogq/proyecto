@@ -32,7 +32,7 @@
 
   "por_evento": {
     "Grabación de instrumental": {
-      "prohibido": ["Micrófonos"]
+      "prohibido": []
     }
   },
 
@@ -56,7 +56,6 @@
       "Micrófonos": 1
     },
     "Grabación de instrumental": {   
-      "Micrófonos": 0,
       "requiere_instrumentos": true
     }
   },

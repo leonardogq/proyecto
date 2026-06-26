@@ -10,5 +10,17 @@
       "Cables": 4,
       "Técnicos de audio": 1
     }
+  },
+  {
+    "tipo": "Grabación de podcast",
+    "sala": "Pequeña",
+    "fecha": "2026-06-25",
+    "recursos": {
+      "Micrófonos": 5,
+      "Soportes de micrófono": 5,
+      "Audífonos": 5,
+      "Cables": 10,
+      "Técnicos de audio": 1
+    }
   }
 ]
