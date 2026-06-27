@@ -477,11 +477,8 @@ class PlanificadorEventos:
         MAX_DIAS = 365  # límite de búsqueda: 1 año
 
         for _ in range(MAX_DIAS):
-            # Protección contra overflow
-            try:
-                fecha_actual = fecha
-            except OverflowError:
-                return None
+            
+            fecha_actual = fecha
 
             # 1. Verificar si la sala está libre ese día
             ocupada = any(
